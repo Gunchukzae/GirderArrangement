@@ -1,0 +1,14 @@
+.vs/
+x64/
+*.user
+*.suo
+*.vcxproj.user
+*.log
+*.obj
+*.pdb
+*.idb
+*.exe
+*.dll
+*.lib
+*.ipch
+.vscode/

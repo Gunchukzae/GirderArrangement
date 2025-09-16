@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="소스 파일\Curve">
+      <UniqueIdentifier>{72a2a4e3-00bc-4e68-8b75-f299418220a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Geometry">
+      <UniqueIdentifier>{a53ea6e5-2c19-42f3-a251-86e292ca4eab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Geometry\Base">
+      <UniqueIdentifier>{dedda29d-8b90-41c5-a7bc-a8408a429d1d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Arc.cpp">
+      <Filter>소스 파일\Curve</Filter>
+    </ClCompile>
+    <ClCompile Include="Arc.h">
+      <Filter>소스 파일\Curve</Filter>
+    </ClCompile>
+    <ClCompile Include="Clothoid.cpp">
+      <Filter>소스 파일\Curve</Filter>
+    </ClCompile>
+    <ClCompile Include="Parabola2D.cpp">
+      <Filter>소스 파일\Curve</Filter>
+    </ClCompile>
+    <ClCompile Include="Surface.cpp">
+      <Filter>소스 파일\Geometry</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Clothoid.h">
+      <Filter>소스 파일\Curve</Filter>
+    </ClInclude>
+    <ClInclude Include="IPlanarCurve.h">
+      <Filter>소스 파일\Curve</Filter>
+    </ClInclude>
+    <ClInclude Include="Parabola2D.h">
+      <Filter>소스 파일\Curve</Filter>
+    </ClInclude>
+    <ClInclude Include="Base.h">
+      <Filter>소스 파일\Geometry\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Surface.h">
+      <Filter>소스 파일\Geometry</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
