@@ -45,7 +45,7 @@ Point2d Arc::position(double s) const
 	return { C.x + v.x, C.y + v.y };
 }
 
-double Arc::heading(double s) const
+double Arc::theta(double s) const
 {
 	return th0 + s / R; //+오목, -볼록
 }

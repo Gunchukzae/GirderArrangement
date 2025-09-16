@@ -32,7 +32,7 @@ Point2d Parabola2D::position(double s) const
 	return { m_P0.x + G.x, m_P0.y + G.y };
 }
 
-double Parabola2D::heading(double s) const
+double Parabola2D::theta(double s) const
 {
 	double xi = xiFromS(s, m_Pos);
 	return m_Theta0 + localHeadingByXi(xi, m_Pos);

@@ -12,15 +12,15 @@
 
 class Parabola2D : public IPlanarCurve
 {
+public:
 	Parabola2D();
 	virtual ~Parabola2D();
 
 	void Init();
 	void RemoveAll();
 
-public:
 	Point2d position(double s) const override;
-	double heading(double s) const override;
+	double theta(double s) const override;
 	double curvature(double s) const override;
 	double length() const override { return m_Len; }
 	bool SetSByPoint(const Point2d& q) override;
@@ -45,7 +45,7 @@ private:
 		return 0.5 * xi * std::sqrt(1.0 + t * t) + 0.5 * p * std::asinh(t);
 	}
 	// s -> ξ 수치역함수 (뉴턴/이분법)
-	static double xiFromS(double s, double p);
+	static double xiFromS(double s, double p) { return .0; };
 
 private:
 	Point2d m_P0;	 // 시작점
