@@ -36,13 +36,16 @@ static double wrapTo2Pi(double rad)
 
 Point2d Arc::position(double s) const
 {
+	Point2d pt;
+
 	double dth = s / R; //진행각
 	Point2d C = GetCentroid();
 
-	Vector2d v0 = { -R * std::cos(th0), -R * std::sin(th0) }; // C->p0
+	Vector2d v0 = Vector2d(- R * std::cos(th0), -R * std::sin(th0)); // C->p0
 	Vector2d v = v0.rotate(dth); // 회전
+	pt = Point2d(C.x + v.x, C.y + v.y); // 이동
 
-	return { C.x + v.x, C.y + v.y };
+	return pt;
 }
 
 double Arc::theta(double s) const

@@ -51,8 +51,7 @@ static double adaptiveSimpson(const std::function<double(double)>& f, double a, 
 // Fresnel : C(x)=∫0^x cos(π/2 t^2) dt, S(x)=∫0^x sin(π/2 t^2) dt
 static void fresnelCS(double x, double& C, double& S, double eps = 1e-10, int maxDepth = 20)
 {
-    // 징후성: C(-x) = -C(x), S(-x) = -S(x)
-    const double sign = (x < 0.0) ? -1.0 : 1.0;
+    const double sign = (x < 0.0) ? -1.0 : 1.0; // C,S는 홀함수
     const double ax = std::fabs(x);
 
     auto fc = [](double t) { return std::cos(0.5 * M_PI * t * t); };
@@ -71,19 +70,18 @@ static void fresnelCS(double x, double& C, double& S, double eps = 1e-10, int ma
 
 Point2d Clothoid::position(double s) const
 {
-    // u = s / (A * sqrt(pi))
-    const double u = s / (A * std::sqrt(M_PI));
+    Point2d pt;
 
+    const double u = s / (A * std::sqrt(M_PI)); // 치환
     double C, S;
-    fresnelCS(u, C, S); // 표준 Fresnel C,S (π/2 t^2 정의)
+    fresnelCS(u, C, S);
 
-    // 로컬 좌표 증가량 (시작 접선각 기준)
-    const double scale = A * std::sqrt(M_PI);
-    Vector2d dL{ scale * C, scale * S };
+    const double scale = A * std::sqrt(M_PI); // 로컬 좌표 증가량
+    Vector2d v0 = Vector2d(scale * C, scale * S);
+    Vector2d v = v0.rotate(th0); // 시작 접선각만큼 회전
+    pt = Point2d(p0.x + v.x, p0.y + v.y); // 시작점 이동
 
-    // 시작 접선각 th0 만큼 회전 후, 시작점 p0에 더함
-    Vector2d dG = dL.rotate(th0);
-    return { p0.x + dG.x, p0.y + dG.y };
+    return pt;
 }
 
 bool Clothoid::SetSByPoint(const Point2d& q)
