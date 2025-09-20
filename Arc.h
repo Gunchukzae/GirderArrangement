@@ -19,7 +19,7 @@ public:
 	double theta(double s) const override;
 	double curvature(double /*s*/) const override { return 1.0 / R;	}
 	double length() const override { return _Sta; }
-	bool SetSByPoint(const Point2d& q) override;
+	bool SetStaByPoint(const Point2d& q) override;
 
 	Point2d GetCentroid() const;
 

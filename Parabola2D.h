@@ -23,7 +23,7 @@ public:
 	double theta(double s) const override;
 	double curvature(double s) const override;
 	double length() const override { return m_Len; }
-	bool SetSByPoint(const Point2d& q) override;
+	bool SetStaByPoint(const Point2d& q) override;
 
 private:
 	// 로컬 좌표에서 파라메트릭 by ξ

@@ -44,7 +44,7 @@ double Parabola2D::curvature(double s) const
 	return localCurvatureByXi(xi, m_Pos);
 }
 
-bool Parabola2D::SetSByPoint(const Point2d& q)
+bool Parabola2D::SetStaByPoint(const Point2d& q)
 {
 	// 수치 최적화로 구현(후속 단계). 여기서는 인터페이스만.
 	return true;

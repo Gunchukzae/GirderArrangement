@@ -20,6 +20,7 @@ void Clothoid::Init()
 	p0 = Point2d();
 	th0 = 0.0;
 	A = 0.0;
+    _MaxSta = 0.0;
     _Sta = 0.0;
 }
 
@@ -84,132 +85,149 @@ Point2d Clothoid::position(double s) const
     return pt;
 }
 
-bool Clothoid::SetSByPoint(const Point2d& q)
+static double Clamp(double x, double a, double b)
 {
-    // ===== 설정값/유틸 =====
-    auto clamp = [](double x, double a, double b) 
-    {
-        return x < a ? a : (x > b ? b : x);
-    };
+    return x < a ? a : (x > b ? b : x);
+}
 
-    // 최대 허용 길이 (Arc와 유사하게 _MaxSta를 쓴다고 가정)
-    // 프로젝트에 맞게 교체 필요: 없으면 멤버/게터에서 가져오세요.
-    const double L = /* _MaxSta */ this->_Sta; // <-- 실제 최대 길이로 교체 권장
+Vector2d Clothoid::GetTanVecBySta(double s)
+{
+    double th = theta(s);
+
+    return Vector2d(std::cos(th), std::sin(th));
+}
+
+Vector2d Clothoid::GetNormVecBySta(double s)
+{
+    double th = theta(s);
+
+    return Vector2d(-std::sin(th), std::cos(th));
+}
+
+double Clothoid::GetDist2BetweenStaPt(const double s, const Point2d& q)
+{
+    Point2d p = position(s);
+    double dx = p.x - q.x;
+    double dy = p.y - q.y;
+
+    return dx * dx + dy * dy;
+}
+
+void Clothoid::GetDistDeriveBetweenStaPt(double s, const Point2d& q, double& fp, double& fpp)
+{
+    Point2d p = position(s);
+    Vector2d r = Vector2d(p.x - q.x, p.y - q.y); // r(s) = p(s) − q
+    Vector2d T = GetTanVecBySta(s);
+    Vector2d N = GetNormVecBySta(s);
+    double k = curvature(s);
+    
+    // f(s) = r^2
+    // f'(s) = 2 r·T
+    fp = 2.0 * (r.x * T.x + r.y * T.y);
+
+    // f''(s) = 2( |T|^2 + r·(k N) ) = 2(1 + k (r·N))
+    fpp = 2.0 * (1.0 + k * (r.x * N.x + r.y * N.y));
+}
+
+bool Clothoid::SetStaByPoint(const Point2d& q)
+{
+    if (A != 0)
+        _MaxSta = A * 5;
+    
+    const double L = _MaxSta;
     if (L <= 0.0) { _Sta = 0.0; return false; }
 
-    // 현재 곡선의 기하
+    // s 초기값 설정 (= 시작점 접선 투영길이)
+    Vector2d T0 = Vector2d(std::cos(th0), std::sin(th0));
+    Vector2d r0 = Vector2d(q.x - p0.x, q.y - p0.y);
+    double s = Clamp(r0.x * T0.x + r0.y * T0.y, 0.0, L);
 
-    auto Tvec = [&](double s) -> Vector2d {
-        double th = theta(s);
-        return { std::cos(th), std::sin(th) }; // unit tangent
-        };
-    auto Nvec = [&](double s) -> Vector2d {
-        double th = theta(s);
-        return { -std::sin(th), std::cos(th) }; // unit normal (좌수/우수 주의)
-        };
-    auto kappa = [&](double s) { return s / (A * A); }; // curvature(s)
-
-    auto pos = [&](double s) -> Point2d { return this->position(s); };
-
-    auto sqDist = [&](double s) {
-        Point2d p = pos(s);
-        double dx = p.x - q.x;
-        double dy = p.y - q.y;
-        return dx * dx + dy * dy;
-        };
-
-    // f(s) = ||p(s)-q||^2 의 도함수/이도함수
-    auto derivs = [&](double s, double& fp, double& fpp) {
-        Point2d p = pos(s);
-        Vector2d r{ p.x - q.x, p.y - q.y };
-        Vector2d T = Tvec(s);
-        Vector2d N = Nvec(s);
-        double k = kappa(s);
-        // f'(s) = 2 r·T
-        fp = 2.0 * (r.x * T.x + r.y * T.y);
-        // f''(s) = 2( |T|^2 + r·(k N) ) = 2(1 + k (r·N))  (T는 단위벡터)
-        fpp = 2.0 * (1.0 + k * (r.x * N.x + r.y * N.y));
-        };
-
-    // ===== 초기값 (시작점 접선으로 직선 투영) =====
-    Vector2d T0{ std::cos(th0), std::sin(th0) };
-    Vector2d r0{ q.x - p0.x, q.y - p0.y };
-    double s = clamp(r0.x * T0.x + r0.y * T0.y, 0.0, L);
-
-    // ===== 뉴턴법 =====
+    // 1.Newton-Raphson Method
     const int    kMaxNewton = 12;
-    const double tol_s = 1e-10 * std::max(1.0, L);
-    const double tol_grad = 1e-10;
+    const double dTolS = 1e-10 * std::max(1.0, L);
+    const double dTolGrad = 1e-10;
 
-    bool newton_ok = false;
-    for (int it = 0; it < kMaxNewton; ++it) {
+    bool bSuccess = false;
+    for (int it = 0; it < kMaxNewton; ++it) 
+    {
         double fp, fpp;
-        derivs(s, fp, fpp);
+        GetDistDeriveBetweenStaPt(s, q, fp, fpp);
 
-        if (std::fabs(fp) < tol_grad) { // 거의 최솟점
-            newton_ok = true;
+        if (std::fabs(fp) < dTolGrad)
+        { 
+            bSuccess = true;
             break;
         }
-        if (fpp == 0.0) break; // 비정상
+
+        if (fpp <= 0.0) break; // Error
 
         double step = fp / fpp;
         double s_new = s - step;
 
-        // 구간 밖이면 클램프
-        if (s_new < 0.0 || s_new > L) {
-            // 가드: 경계 쪽이 더 낫다면 경계로 이동
-            double f_here = sqDist(s);
-            double f0 = sqDist(0.0);
-            double fL = sqDist(L);
-            if (f0 < f_here || fL < f_here) {
+        // [0,L] 벗어났을 경우
+        if (s_new < 0.0 || s_new > L) 
+        {
+            double fCur = GetDist2BetweenStaPt(s, q);
+            double f0 = GetDist2BetweenStaPt(0.0, q);
+            double fL = GetDist2BetweenStaPt(L, q);
+
+            // [0,L]에서 0,L이 최소 후보일 경우
+            if (f0 < fCur || fL < fCur) 
+            {
                 s = (f0 < fL) ? 0.0 : L;
-                newton_ok = true;
+                bSuccess = true;
                 break;
             }
-            // 아니면 소폭 줄여서 시도
-            s_new = clamp(s_new, 0.0, L);
+            // 다시 시도
+            s_new = Clamp(s_new, 0.0, L);
         }
 
-        if (std::fabs(s_new - s) < tol_s) {
+        if (std::fabs(s_new - s) < dTolS)
+        {
             s = s_new;
-            newton_ok = true;
+            bSuccess = true;
             break;
         }
+
         s = s_new;
     }
 
-    // ===== 백업: 골든 섹션 (구간 [0,L]에서 최소화) =====
-    if (!newton_ok) {
-        const double phi = 0.5 * (3.0 - std::sqrt(5.0)); // ≈ 0.381966
+    // 2.Golden-section search (구간 [0,L]에서 최소화)
+    if (!bSuccess) 
+    {
+        const double phi = 0.5 * (3.0 - std::sqrt(5.0)); // 0.381966
         double a = 0.0, b = L;
         double x1 = a + (1.0 - phi) * (b - a);
         double x2 = a + phi * (b - a);
-        double f1 = sqDist(x1);
-        double f2 = sqDist(x2);
+        double f1 = GetDist2BetweenStaPt(x1, q);
+        double f2 = GetDist2BetweenStaPt(x2, q);
 
-        for (int it = 0; it < 80; ++it) {
-            if (f1 > f2) {
+        for (int it = 0; it < 80; ++it) // 80회 반복
+        {
+            if (f1 > f2) 
+            {
                 a = x1;
                 x1 = x2;
                 f1 = f2;
                 x2 = a + phi * (b - a);
-                f2 = sqDist(x2);
+                f2 = GetDist2BetweenStaPt(x2, q);
             }
-            else {
+            else 
+            {
                 b = x2;
                 x2 = x1;
                 f2 = f1;
                 x1 = a + (1.0 - phi) * (b - a);
-                f1 = sqDist(x1);
+                f1 = GetDist2BetweenStaPt(x1, q);
             }
-            if (std::fabs(b - a) < tol_s) break;
+
+            if (std::fabs(b - a) < dTolS) break;
         }
         s = 0.5 * (a + b);
     }
 
-    // 최종 세팅 (경계 안정화)
-    s = clamp(s, 0.0, L);
+    s = Clamp(s, 0.0, L);
     _Sta = s;
+
     return true;
 }
-

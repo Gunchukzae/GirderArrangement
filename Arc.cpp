@@ -53,7 +53,7 @@ double Arc::theta(double s) const
 	return th0 + s / R; //+오목, -볼록
 }
 
-bool Arc::SetSByPoint(const Point2d& q)
+bool Arc::SetStaByPoint(const Point2d& q)
 {
 	// 중점 기준으로 극좌표로 투영
 	Point2d C = GetCentroid();

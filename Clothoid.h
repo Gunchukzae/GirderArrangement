@@ -19,7 +19,13 @@ public:
 	double theta(double s) const override { return th0 + (s * s) / (2.0 * A * A); }
 	double curvature(double s) const override {	return s / (A * A); }
 	double length() const override { return _Sta; }
-	bool SetSByPoint(const Point2d& q) override;
+	bool SetStaByPoint(const Point2d& q) override;
+
+private:
+	void GetDistDeriveBetweenStaPt(double s, const Point2d& q, double& fp, double& fpp);
+	Vector2d GetTanVecBySta(double s);
+	Vector2d GetNormVecBySta(double s);
+	double GetDist2BetweenStaPt(const double s, const Point2d& q);
 
 public:
 	Point2d p0;	// 시작점
@@ -27,5 +33,6 @@ public:
 	double A;	// 클로소이드 파라미터
 
 private:
+	double _MaxSta; // 클로소이드 Max Length
 	double _Sta;	// 현재 station (= p0->STA 길이)
 };
